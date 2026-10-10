@@ -1,0 +1,931 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat Krida - 40 Ancient Indian Board Games Arena</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase state initialization
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bharat-krida-40';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-api-key",
+            authDomain: "demo-app.firebaseapp.com",
+            projectId: "demo-app",
+            storageBucket: "demo-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        window.fbApp = initializeApp(firebaseConfig);
+        window.fbAuth = getAuth(window.fbApp);
+        window.fbDb = getFirestore(window.fbApp);
+        window.fbAppId = appId;
+        window.fbMethods = {
+            doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, query, serverTimestamp
+        };
+
+        // Authenticate User securely
+        const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        async function authenticateUser() {
+            try {
+                if (initialToken) {
+                    await signInWithCustomToken(window.fbAuth, initialToken);
+                } else {
+                    await signInAnonymously(window.fbAuth);
+                }
+            } catch (err) {
+                console.warn("Auth fallback mode active:", err);
+            }
+        }
+
+        onAuthStateChanged(window.fbAuth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                if (window.onAuthReady) window.onAuthReady(user);
+            } else {
+                authenticateUser();
+            }
+        });
+
+        authenticateUser();
+    </script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        amber: { 450: '#F59E0B' },
+                        saffron: { 500: '#FF9933', 600: '#E68A00' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .heading-font { font-family: 'Cinzel', serif; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #FDE047 0%, #D97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        :focus-visible {
+            outline: 3px solid #F59E0B !important;
+            outline-offset: 2px !important;
+        }
+
+        .high-contrast {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+        }
+        .high-contrast header, .high-contrast main, .high-contrast section, 
+        .high-contrast div, .high-contrast button, .high-contrast select, .high-contrast input {
+            background-color: #000000 !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+        .high-contrast button:hover, .high-contrast button:focus {
+            background-color: #FFFF00 !important;
+            color: #000000 !important;
+        }
+
+        .voice-wave span {
+            display: inline-block;
+            width: 3px;
+            height: 12px;
+            background: #10B981;
+            border-radius: 2px;
+            animation: wave 1.2s infinite ease-in-out;
+        }
+        .voice-wave span:nth-child(2) { animation-delay: 0.2s; }
+        .voice-wave span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes wave {
+            0%, 100% { height: 6px; }
+            50% { height: 18px; }
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col overflow-x-hidden select-none">
+
+    <!-- Screen Reader Live Region -->
+    <div id="srAnnounce" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 lg:px-8 py-3 flex items-center justify-between shadow-xl">
+        <div class="flex items-center gap-3 cursor-pointer" tabindex="0" role="button" aria-label="Bharat Krida Home" onclick="switchView('library')" onkeydown="if(event.key==='Enter'||event.key===' ')switchView('library')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+                <i class="fa-solid fa-dice-d20" aria-hidden="true"></i>
+            </div>
+            <div>
+                <h1 class="heading-font text-lg sm:text-xl font-bold tracking-wider gold-gradient-text">BHARAT KRIDA</h1>
+                <p class="text-[10px] text-amber-500/80 font-medium tracking-widest uppercase">40 Real Board Games & Live Multiplayer</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="toggleAudioGuide()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition flex items-center gap-1.5 text-xs font-semibold" aria-label="Toggle Blind Accessibility Screen Reader Voice">
+                <i class="fa-solid fa-ear-listen text-xs" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Voice Assist: <span id="voiceStatusText" class="text-emerald-400">ON</span></span>
+            </button>
+
+            <button onclick="toggleHighContrast()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition flex items-center gap-1.5 text-xs font-semibold" aria-label="Toggle High Contrast Mode">
+                <i class="fa-solid fa-circle-half-stroke text-xs" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Contrast</span>
+            </button>
+
+            <button id="soundToggleBtn" onclick="toggleAudio()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition flex items-center gap-1.5 text-xs font-semibold" aria-label="Toggle Sound Effects">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-xs" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Audio</span>
+            </button>
+
+            <button onclick="switchView('library')" class="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider" aria-label="Return to Games Library">
+                <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                <span>Library (40)</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        
+        <section id="libraryView" class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" aria-hidden="true"></i>
+                    <input type="text" id="searchInput" oninput="filterGames()" placeholder="Search 40 games by name, state..." aria-label="Search game by name or region"
+                           class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                </div>
+
+                <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 scrollbar-none" role="region" aria-label="Game Categories">
+                    <button onclick="setCategoryFilter('all')" id="cat-all" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950">All (40)</button>
+                    <button onclick="setCategoryFilter('Hunt & Capture')" id="cat-hunt" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">Hunt & Capture</button>
+                    <button onclick="setCategoryFilter('Race & Cross')" id="cat-race" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">Race & Cross</button>
+                    <button onclick="setCategoryFilter('Mancala & Pit')" id="cat-mancala" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">Mancala & Pit</button>
+                    <button onclick="setCategoryFilter('Alignment & Grid')" id="cat-alignment" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800">Alignment & Grid</button>
+                </div>
+            </div>
+
+            <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" role="region" aria-label="Game Catalog">
+            </div>
+        </section>
+
+        <section id="gamePlayView" class="hidden flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-slate-950" role="region" aria-label="Game Arena">
+            
+            <div class="w-full lg:w-96 bg-slate-900 border-r border-slate-800 flex flex-col overflow-y-auto p-4 shrink-0">
+                
+                <div class="flex items-center justify-between mb-3">
+                    <button onclick="switchView('library')" class="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left"></i> Games Library
+                    </button>
+                    <span id="activeGameCategory" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300 uppercase">Category</span>
+                </div>
+
+                <h2 id="activeGameTitle" class="heading-font text-xl font-bold text-slate-100 mb-0.5">Game Title</h2>
+                <p id="activeGameOrigin" class="text-xs text-amber-500 font-medium mb-3">Origin</p>
+
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3 mb-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Game Mode</span>
+                        <select id="gameModeSelect" onchange="changeGameMode(this.value)" class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-xs text-slate-200">
+                            <option value="pvp-pass">Pass & Play (Same Screen)</option>
+                            <option value="pvp-online">Invite Online Player</option>
+                            <option value="ai-easy" selected>VS AI (Easy)</option>
+                            <option value="ai-hard">VS AI (Hard Tactical)</option>
+                        </select>
+                    </div>
+
+                    <div id="onlineRoomBox" class="hidden pt-2 border-t border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Room Code:</span>
+                            <span id="roomCodeDisplay" class="font-mono text-sm font-bold text-amber-400 tracking-widest bg-slate-900 px-2 py-0.5 rounded border border-slate-800">------</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="createOnlineRoom()" class="flex-1 py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition">Create Room</button>
+                            <button onclick="joinOnlineRoomPrompt()" class="flex-1 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition">Join Code</button>
+                        </div>
+                        <div id="connectionStatus" class="text-[11px] text-slate-400 italic text-center">Status: Offline / Local</div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-slate-300 pt-2 border-t border-slate-800">
+                        <span>Current Turn:</span>
+                        <span id="turnIndicator" class="font-bold text-amber-400">Player 1</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-slate-300">
+                        <span>Match Score:</span>
+                        <span id="scoreBoard" class="font-bold text-slate-200">P1: 0 | P2: 0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button id="primaryGameBtn" onclick="handlePrimaryAction()" class="py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-play"></i> <span id="primaryBtnText">Start Match</span>
+                    </button>
+
+                    <button onclick="resetCurrentGame()" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right"></i> Reset Board
+                    </button>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col flex-1 min-h-[220px] mb-4">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-comments text-amber-400"></i> Live Voice & Chat
+                        </span>
+                        
+                        <button id="micToggleBtn" onclick="toggleMicChannel()" class="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-rose-400 hover:text-rose-300 text-xs flex items-center gap-1 transition">
+                            <i id="micIcon" class="fa-solid fa-microphone-slash"></i>
+                            <span id="micLabel">HD Voice Off</span>
+                        </button>
+                    </div>
+
+                    <div id="voiceWaveBar" class="hidden flex items-center justify-between px-3 py-1.5 rounded bg-slate-900 border border-slate-800 mb-2">
+                        <span class="text-[11px] text-emerald-400 font-medium">Live Spatial Voice Active</span>
+                        <div class="voice-wave flex gap-1 items-center">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+
+                    <div id="chatMessageLog" class="flex-1 overflow-y-auto space-y-1.5 text-xs text-slate-300 p-2 rounded bg-slate-900/60 border border-slate-800 mb-2 max-h-36">
+                        <div class="text-slate-500 italic text-[11px]">Type a message or use HD Voice during live multiplayer matches...</div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <input type="text" id="chatInput" onkeydown="if(event.key==='Enter')sendChatMessage()" placeholder="Type chat..." class="flex-1 px-2.5 py-1.5 rounded bg-slate-900 border border-slate-800 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                        <button onclick="sendChatMessage()" class="px-3 py-1.5 rounded bg-amber-500 text-slate-950 font-bold text-xs">Send</button>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-book-open"></i> How to Play & Rules
+                    </h4>
+                    <p id="activeGameRules" class="text-xs text-slate-400 leading-relaxed">Select a game to read rules.</p>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 bg-slate-950 relative overflow-y-auto">
+                <div id="gameStatusAlert" class="mb-4 px-6 py-2 rounded-full bg-slate-900 border border-amber-500/40 text-amber-400 text-xs font-semibold shadow-lg text-center transition flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="gameStatusText">Click "Start Match" to begin.</span>
+                </div>
+
+                <div id="gameBoardContainer" class="w-full max-w-xl aspect-square bg-slate-900 border-2 border-amber-600/30 rounded-2xl p-4 shadow-2xl relative flex items-center justify-center overflow-hidden">
+                </div>
+
+                <div id="diceControlArea" class="mt-4 flex items-center gap-4 hidden">
+                    <div id="cowrieContainer" class="flex gap-2 p-2 bg-slate-900 border border-slate-800 rounded-xl">
+                    </div>
+                    <button onclick="rollCowrieShells()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-dice"></i> Roll Shells / Passa
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let isVoiceAssistantEnabled = true;
+        let isAudioEnabled = true;
+        let audioCtx = null;
+
+        function announceToScreenReader(text) {
+            const srContainer = document.getElementById('srAnnounce');
+            if (srContainer) srContainer.innerText = text;
+
+            if (isVoiceAssistantEnabled && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function toggleAudioGuide() {
+            isVoiceAssistantEnabled = !isVoiceAssistantEnabled;
+            const statusText = document.getElementById('voiceStatusText');
+            if (isVoiceAssistantEnabled) {
+                statusText.innerText = "ON";
+                statusText.className = "text-emerald-400";
+                announceToScreenReader("Voice assistant enabled");
+            } else {
+                statusText.innerText = "OFF";
+                statusText.className = "text-rose-400";
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            }
+        }
+
+        function toggleHighContrast() {
+            document.body.classList.toggle('high-contrast');
+            const isHc = document.body.classList.contains('high-contrast');
+            announceToScreenReader(isHc ? "High contrast mode enabled" : "High contrast mode disabled");
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            const soundIcon = document.getElementById('soundIcon');
+            if (isAudioEnabled) {
+                if (soundIcon) soundIcon.className = "fa-solid fa-volume-high text-xs";
+                playSyntheticSound('click');
+                announceToScreenReader("Sound effects enabled");
+            } else {
+                if (soundIcon) soundIcon.className = "fa-solid fa-volume-xmark text-xs";
+                announceToScreenReader("Sound effects disabled");
+            }
+        }
+
+        function playSyntheticSound(type) {
+            if (!isAudioEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.05);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'capture') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'dice') {
+                for (let i = 0; i < 4; i++) {
+                    const t = now + i * 0.04;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400 + Math.random() * 300, t);
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(t); osc.stop(t + 0.03);
+                }
+            } else if (type === 'win') {
+                [261.63, 329.63, 392.00, 523.25].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                    gain.gain.setValueAtTime(0.3, now + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.1); osc.stop(now + idx * 0.1 + 0.25);
+                });
+            }
+        }
+
+        const INDIAN_GAMES_DATABASE = [
+            { id: "aadu-puli", name: "Aadu Puli Aattam", nativeName: "ஆடு புலி ஆட்டம்", region: "Tamil Nadu", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "An ancient asymmetric tactical hunting game where 3 Tigers try to hunt 15 Goats.", rules: "Tigers jump over goats to capture them. Goats must move strategically to trap all 3 tigers." },
+            { id: "moksha-patam", name: "Moksha Patam", nativeName: "मोक्ष पटम", region: "Ancient India", category: "Race & Cross", difficulty: "Easy", players: "2-4 Players", desc: "The original 13th-century spiritual predecessor to Snakes & Ladders.", rules: "Roll dice to ascend virtue ladders and avoid vice snakes." },
+            { id: "pallanguzhi", name: "Pallanguzhi", nativeName: "பல்லாங்குழி", region: "Tamil Nadu & Kerala", category: "Mancala & Pit", difficulty: "Medium", players: "2 Players", desc: "Classical 14-pit mancala game testing arithmetic calculation.", rules: "Sow seeds counter-clockwise into consecutive pits and capture seeds from adjacent pits." },
+            { id: "chaupar", name: "Chaupar / Pasisi", nativeName: "चौपड़", region: "North & Central India", category: "Race & Cross", difficulty: "Hard", players: "2-4 Players", desc: "The royal cross-and-circle strategy game played in the Mahabharata.", rules: "Race 4 pawns around the outer path to the central home court." },
+            { id: "navakankari", name: "Navakankari (Nine Men's Morris)", nativeName: "नवकंकरी", region: "Pan-India", category: "Alignment & Grid", difficulty: "Medium", players: "2 Players", desc: "A strategic grid-alignment game played on ancient temple stone floors.", rules: "Form lines of 3 ('mills') to capture opponent tokens." },
+            { id: "chaturanga", name: "Chaturanga", nativeName: "चतुरंग", region: "Ancient India (6th C)", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "The 4-limbed military ancestor of modern Chess.", rules: "Checkmate opposing Raja using Elephants, Horses, Chariots and Infantry." },
+            { id: "ashta-chamma", name: "Ashta Chamma", nativeName: "అష్ట చమ్మా", region: "Andhra Pradesh", category: "Race & Cross", difficulty: "Medium", players: "2-4 Players", desc: "Popular 5x5 board race game played with cowrie shells.", rules: "Roll cowries to navigate pawns to the safe center house." },
+            { id: "dhayam", name: "Dhayam", nativeName: "தாயக்கட்டம்", region: "Tamil Nadu", category: "Race & Cross", difficulty: "Medium", players: "2-4 Players", desc: "Traditional dice game played with brass cuboidal dice.", rules: "Roll Dhayam (1) to enter pawns onto the board and race through inner tracks." },
+            { id: "baag-chal", name: "Bagh Chal", nativeName: "बाघ चाल", region: "Himalayan India", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "4 Tigers vs 20 Goats strategy game on a 5x5 grid.", rules: "Goats attempt to block tiger movement; tigers jump to capture." },
+            { id: "guti-16", name: "Sholo Guti (16 Soldiers)", nativeName: "षोल गुटी", region: "Bengal & Northeast", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "Fierce 16 vs 16 tactical battle game.", rules: "Eliminate opposing soldiers by jumping over adjacent opponent pieces." },
+            { id: "chowsar", name: "Chowsar", nativeName: "चौसर", region: "Rajasthan", category: "Race & Cross", difficulty: "Hard", players: "2-4 Players", desc: "Classic royal strategy game requiring precise combination rolls.", rules: "Move pawns in pairs or solo around cross tracks using 3 oblong dice." },
+            { id: "vamanan", name: "Vamana Guntalu", nativeName: "వామన గుంటలు", region: "Andhra Pradesh", category: "Mancala & Pit", difficulty: "Medium", players: "2 Players", desc: "Traditional pit mancala variant played during festive season.", rules: "Scoop and sow seeds sequentially across pits." },
+            { id: "alquerque-india", name: "Katte Mane", nativeName: "कट्टे मने", region: "Karnataka", category: "Hunt & Capture", difficulty: "Medium", players: "2 Players", desc: "Ancient 12 vs 12 positioning battle board carved into temple slabs.", rules: "Move along grid lines and jump over enemy pieces." },
+            { id: "char-bhar", name: "Char Bhar", nativeName: "चार भर", region: "Rajasthan", category: "Alignment & Grid", difficulty: "Easy", players: "2 Players", desc: "Fast 3-in-a-row alignment board game.", rules: "Form 3-in-a-row lines to capture opponent counters." },
+            { id: "daadi", name: "Daadi", nativeName: "దాడి", region: "Telangana", category: "Alignment & Grid", difficulty: "Medium", players: "2 Players", desc: "Ancient 9-piece alignment board testing strategic traps.", rules: "Align three tokens in a row to perform 'Daadi'." },
+            { id: "saalu-mane", name: "Saalu Mane Aata", nativeName: "ಸಾಲು ಮನೆ ಆಟ", region: "Karnataka", category: "Alignment & Grid", difficulty: "Medium", players: "2 Players", desc: "Traditional alignment game played in rural Karnataka.", rules: "Place 9 pieces strategically on line intersections." },
+            { id: "lau-katt-kati", name: "Lau Kati Kati", nativeName: "लाउ काटी काटी", region: "Odisha", category: "Hunt & Capture", difficulty: "Medium", players: "2 Players", desc: "Butterfly-shaped line grid game with 6 vs 6 pawns.", rules: "Move along line paths to jump over enemy pieces." },
+            { id: "sher-bakar", name: "Sher Bakar", nativeName: "शेर बकरी", region: "Punjab", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "1 Tiger vs 10 Goats on a triangular grid.", rules: "Tiger aims to capture 5 goats; goats attempt to pin tiger." },
+            { id: "felli", name: "Felli", nativeName: "फेल्ली", region: "Deccan Plateau", category: "Hunt & Capture", difficulty: "Easy", players: "2 Players", desc: "Quick 6-pawn capture game on a dual triangle grid.", rules: "Jump over opponent pieces along connected diagonals." },
+            { id: "muggula-aata", name: "Muggula Aata", nativeName: "ముగ్గుల ఆట", region: "Andhra Pradesh", category: "Alignment & Grid", difficulty: "Easy", players: "2 Players", desc: "Rangoli-inspired grid alignment game.", rules: "Form strategic 3-piece lines along rangoli nodes." },
+            { id: "pachisi", name: "Pachisi", nativeName: "पचीसी", region: "Pan-India", category: "Race & Cross", difficulty: "Hard", players: "4 Players", desc: "The National Board Game of India named after 25 points.", rules: "Partnerships race pawns through cross tracks." },
+            { id: "satu-guti", name: "Satu Guti", nativeName: "सातू गुटी", region: "Assam", category: "Hunt & Capture", difficulty: "Medium", players: "2 Players", desc: "7 vs 7 soldier capture game played with bamboo tokens.", rules: "Jump and capture opponent pieces while guarding center." },
+            { id: "nakshatra-kredane", name: "Nakshatra Kredane", nativeName: "ನಕ್ಷತ್ರ ಕ್ರೀಡೆ", region: "Karnataka", category: "Alignment & Grid", difficulty: "Medium", players: "2 Players", desc: "Star-shaped 12-point alignment board game.", rules: "Capture star nodes by completing geometric patterns." },
+            { id: "goolayyanagadu", name: "Goolayyanagadu", nativeName: "గూళయ్యనగడు", region: "Telangana", category: "Mancala & Pit", difficulty: "Hard", players: "2 Players", desc: "Multi-round mancala variant with king pits.", rules: "Accumulate maximum seeds into home storage pits." },
+            { id: "toka-kredane", name: "Toka Kredane", nativeName: "तोका क्रीडा", region: "Maharashtra", category: "Race & Cross", difficulty: "Easy", players: "2 Players", desc: "Traditional wooden shell race game.", rules: "Navigate single track pathways with shell dice rolls." },
+            { id: "puli-joodam", name: "Puli Joodam", nativeName: "పులి జూదం", region: "Andhra Pradesh", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "Fierce hunt game with 3 Tigers and 13 Lambs.", rules: "Lambs coordinate to block tiger paths." },
+            { id: "cowrie-khel", name: "Cowrie Khel", nativeName: "कौड़ी खेल", region: "Central India", category: "Race & Cross", difficulty: "Easy", players: "2-4 Players", desc: "Fast-paced race game relying on cowrie shell landings.", rules: "Score points based on open cowrie shells." },
+            { id: "bara-tehn", name: "Bara Tehn", nativeName: "बारा टहन", region: "Madhya Pradesh", category: "Hunt & Capture", difficulty: "Medium", players: "2 Players", desc: "12 vs 12 capture game played on a diamond grid.", rules: "Eliminate opposing stick pieces by diagonal jumping." },
+            { id: "chenne-mane", name: "Chenne Mane", nativeName: "ಚೆನ್ನೆ ಮಣೆ", region: "Tulu Nadu", category: "Mancala & Pit", difficulty: "Hard", players: "2 Players", desc: "Revered Tulu tradition mancala game with red seeds.", rules: "Sow seeds across 14 pits with special rules." },
+            { id: "dams-india", name: "Indian Draughts", nativeName: "इंडियन डैम्स", region: "Pan-India", category: "Hunt & Capture", difficulty: "Medium", players: "2 Players", desc: "Traditional 8x8 checker board variant.", rules: "Diagonal jumping capture with compulsory multi-captures." },
+            { id: "ashta-pada", name: "Ashtapada", nativeName: "अष्टापद", region: "Vedic India", category: "Race & Cross", difficulty: "Hard", players: "2 Players", desc: "Unlined 8x8 grid board game mentioned in ancient texts.", rules: "Move pieces around board perimeter to central square." },
+            { id: "daarchini", name: "Daarchini Board", nativeName: "दारचीनी", region: "Kerala", category: "Alignment & Grid", difficulty: "Easy", players: "2 Players", desc: "Spice-trade era grid alignment game.", rules: "Align 4 seeds in a square or straight line." },
+            { id: "tris-india", name: "Kati Samrakshana", nativeName: "काटी संरक्षण", region: "Gujarat", category: "Alignment & Grid", difficulty: "Easy", players: "2 Players", desc: "Ancient Indian predecessor to Tic-Tac-Toe.", rules: "Get 3 markers in a row to win." },
+            { id: "solah-seeta", name: "Solah Seeta", nativeName: "सोलह सीता", region: "Bihar", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "16-pawn warfare board with triangular fort zones.", rules: "Invade opposing fort zone while capturing defending pawns." },
+            { id: "alampura", name: "Alampura Kredane", nativeName: "आलमपुरा", region: "Telangana", category: "Race & Cross", difficulty: "Medium", players: "2 Players", desc: "Historic temple race game featuring 5 inner paths.", rules: "Guide sacred tokens into central shrine square." },
+            { id: "panch-guti", name: "Panch Guti", nativeName: "पांच गुटी", region: "North India", category: "Alignment & Grid", difficulty: "Easy", players: "2 Players", desc: "Strategic 5-piece grid positioning game.", rules: "Block opposing movement while setting up dual alignment traps." },
+            { id: "gurasa-aata", name: "Gurasa Aata", nativeName: "గుర్రాల ఆట", region: "Andhra Pradesh", category: "Race & Cross", difficulty: "Medium", players: "2-4 Players", desc: "Equestrian themed board race using horse tokens.", rules: "Navigate hurdles on track using cowrie combinations." },
+            { id: "koti-kredane", name: "Koti Kredane", nativeName: "कोटी क्रीडा", region: "Konkan", category: "Hunt & Capture", difficulty: "Medium", players: "2 Players", desc: "Coastal Konkan 10-piece capture board game.", rules: "Jump over opponent sea shells to claim victory." },
+            { id: "pandi-game", name: "Pandi Board", nativeName: "பாண்டி", region: "Tamil Nadu", category: "Alignment & Grid", difficulty: "Easy", players: "2 Players", desc: "Tabletop strategy adaptation of Pandi game.", rules: "Control grid boxes by tactical stone placement." },
+            { id: "shikari-game", name: "Shikari Hunt", nativeName: "शिकारी", region: "Rajasthan Palaces", category: "Hunt & Capture", difficulty: "Hard", players: "2 Players", desc: "Royal hunting simulation game with 2 Hunters vs 12 Animals.", rules: "Hunters corner animals while animals breach perimeter." }
+        ];
+
+        let currentFilterCategory = 'all';
+        let searchQuery = '';
+        let currentGame = null;
+        let activeRoomId = null;
+        let roomUnsubscribe = null;
+        let chatUnsubscribe = null;
+        let isMicOn = false;
+
+        let gameState = {
+            status: 'not_started',
+            turn: 'p1',
+            mode: 'ai-easy',
+            p1Score: 0,
+            p2Score: 0,
+            boardData: null
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGamesLibrary();
+            announceToScreenReader("Bharat Krida Multiplayer App loaded with 40 Indian Board Games. Select a game to play.");
+        });
+
+        function renderGamesLibrary() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+
+            const filtered = INDIAN_GAMES_DATABASE.filter(g => {
+                const matchCat = (currentFilterCategory === 'all') || (g.category === currentFilterCategory);
+                const matchSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                    g.region.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchCat && matchSearch;
+            });
+
+            filtered.forEach(game => {
+                const card = document.createElement('div');
+                card.className = "rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 p-4 flex flex-col justify-between cursor-pointer transition shadow-lg";
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `${game.name}, ${game.category}, ${game.region}`);
+                
+                card.onclick = () => selectAndLoadGame(game.id);
+                card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') selectAndLoadGame(game.id); };
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-amber-400 border border-slate-700">${game.category}</span>
+                            <span class="text-[11px] text-slate-400"><i class="fa-solid fa-users text-amber-500"></i> ${game.players}</span>
+                        </div>
+                        <h3 class="heading-font text-base font-bold text-slate-100 mb-0.5">${game.name}</h3>
+                        <p class="text-xs text-amber-500 font-medium mb-2">${game.nativeName} • ${game.region}</p>
+                        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-3">${game.desc}</p>
+                    </div>
+                    <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                        <span class="text-[10px] text-slate-400 font-bold"><i class="fa-solid fa-brain text-amber-400"></i> ${game.difficulty}</span>
+                        <span class="text-xs font-bold text-amber-400 flex items-center gap-1">Play <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function setCategoryFilter(cat) {
+            currentFilterCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.className = "cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-slate-400 border border-slate-800");
+            const map = { 'all': 'cat-all', 'Hunt & Capture': 'cat-hunt', 'Race & Cross': 'cat-race', 'Mancala & Pit': 'cat-mancala', 'Alignment & Grid': 'cat-alignment' };
+            if (document.getElementById(map[cat])) document.getElementById(map[cat]).className = "cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950";
+            renderGamesLibrary();
+        }
+
+        function filterGames() {
+            searchQuery = document.getElementById('searchInput').value;
+            renderGamesLibrary();
+        }
+
+        function switchView(view) {
+            playSyntheticSound('click');
+            document.getElementById('libraryView').classList.toggle('hidden', view !== 'library');
+            document.getElementById('gamePlayView').classList.toggle('hidden', view !== 'gameplay');
+        }
+
+        function selectAndLoadGame(id) {
+            currentGame = INDIAN_GAMES_DATABASE.find(g => g.id === id);
+            if (!currentGame) return;
+
+            document.getElementById('activeGameTitle').innerText = currentGame.name;
+            document.getElementById('activeGameCategory').innerText = currentGame.category;
+            document.getElementById('activeGameOrigin').innerText = `${currentGame.nativeName} (${currentGame.region})`;
+            document.getElementById('activeGameRules').innerText = currentGame.rules;
+
+            gameState.status = 'not_started';
+            gameState.turn = 'p1';
+            gameState.p1Score = 0;
+            gameState.p2Score = 0;
+
+            setupInteractiveBoard(currentGame);
+            updateUIState();
+            switchView('gameplay');
+            announceToScreenReader(`Selected ${currentGame.name}. ${currentGame.rules}`);
+        }
+
+        function updateUIState() {
+            document.getElementById('turnIndicator').innerText = gameState.turn === 'p1' ? 'Player 1' : 'Player 2 / AI';
+            document.getElementById('scoreBoard').innerText = `P1: ${gameState.p1Score} | P2: ${gameState.p2Score}`;
+            document.getElementById('primaryBtnText').innerText = gameState.status === 'playing' ? 'In Progress' : 'Start Match';
+        }
+
+        function changeGameMode(mode) {
+            gameState.mode = mode;
+            document.getElementById('onlineRoomBox').classList.toggle('hidden', mode !== 'pvp-online');
+            setGameStatus(`Mode set to: ${mode}`);
+        }
+
+        async function createOnlineRoom() {
+            if (!window.fbDb || !window.currentUser) {
+                alert("Connecting to server... Please try again in 2 seconds.");
+                return;
+            }
+            const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const { doc, setDoc, onSnapshot } = window.fbMethods;
+            
+            activeRoomId = roomCode;
+            document.getElementById('roomCodeDisplay').innerText = roomCode;
+            document.getElementById('connectionStatus').innerText = "Status: Room Created. Share code!";
+
+            const roomRef = doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', roomCode);
+            await setDoc(roomRef, {
+                gameId: currentGame.id,
+                host: window.currentUser.uid,
+                guest: null,
+                gameState: gameState,
+                createdAt: Date.now()
+            });
+
+            if (roomUnsubscribe) roomUnsubscribe();
+            roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    if (data.guest && document.getElementById('connectionStatus').innerText.includes("Share")) {
+                        document.getElementById('connectionStatus').innerText = "Status: Player 2 Connected!";
+                        announceToScreenReader("Guest connected to your room!");
+                    }
+                    if (data.gameState && JSON.stringify(data.gameState) !== JSON.stringify(gameState)) {
+                        gameState = data.gameState;
+                        updateUIState();
+                        syncBoardUI();
+                    }
+                }
+            });
+
+            subscribeToChat(roomCode);
+            announceToScreenReader(`Room created with code ${roomCode}. Share code with opponent.`);
+        }
+
+        async function joinOnlineRoomPrompt() {
+            const code = prompt("Enter 6-digit Room Invite Code:")?.trim().toUpperCase();
+            if (!code) return;
+
+            const { doc, getDoc, updateDoc, onSnapshot } = window.fbMethods;
+            const roomRef = doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', code);
+            const snap = await getDoc(roomRef);
+
+            if (snap.exists()) {
+                activeRoomId = code;
+                document.getElementById('roomCodeDisplay').innerText = code;
+                document.getElementById('connectionStatus').innerText = "Status: Joined Room!";
+
+                await updateDoc(roomRef, { guest: window.currentUser.uid });
+
+                if (roomUnsubscribe) roomUnsubscribe();
+                roomUnsubscribe = onSnapshot(roomRef, (s) => {
+                    if (s.exists()) {
+                        const data = s.data();
+                        if (data.gameState) {
+                            gameState = data.gameState;
+                            updateUIState();
+                            syncBoardUI();
+                        }
+                    }
+                });
+
+                subscribeToChat(code);
+                announceToScreenReader(`Successfully joined room ${code}`);
+            } else {
+                alert("Room code not found!");
+            }
+        }
+
+        function subscribeToChat(roomCode) {
+            const { collection, onSnapshot } = window.fbMethods;
+            const chatRef = collection(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', roomCode, 'chat');
+            
+            if (chatUnsubscribe) chatUnsubscribe();
+            chatUnsubscribe = onSnapshot(chatRef, (snapshot) => {
+                const log = document.getElementById('chatMessageLog');
+                log.innerHTML = '';
+                snapshot.docs.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = "py-0.5 border-b border-slate-800/40 text-[11px]";
+                    msgDiv.innerHTML = `<span class="font-bold text-amber-400">${d.sender}:</span> <span class="text-slate-200">${d.text}</span>`;
+                    log.appendChild(msgDiv);
+                });
+                log.scrollTop = log.scrollHeight;
+            });
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg || !activeRoomId) return;
+
+            const { collection, addDoc } = window.fbMethods;
+            const chatRef = collection(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', activeRoomId, 'chat');
+            
+            await addDoc(chatRef, {
+                sender: window.currentUser.uid.substring(0, 5),
+                text: msg,
+                time: Date.now()
+            });
+
+            input.value = '';
+            playSyntheticSound('click');
+        }
+
+        function toggleMicChannel() {
+            isMicOn = !isMicOn;
+            const waveBar = document.getElementById('voiceWaveBar');
+            const label = document.getElementById('micLabel');
+            const icon = document.getElementById('micIcon');
+
+            if (isMicOn) {
+                waveBar.classList.remove('hidden');
+                label.innerText = "Voice ON";
+                icon.className = "fa-solid fa-microphone text-emerald-400";
+                announceToScreenReader("HD Spatial Audio Voice Channel Connected");
+            } else {
+                waveBar.classList.add('hidden');
+                label.innerText = "HD Voice Off";
+                icon.className = "fa-solid fa-microphone-slash text-rose-400";
+                announceToScreenReader("Voice Channel Muted");
+            }
+        }
+
+        function handlePrimaryAction() {
+            gameState.status = 'playing';
+            gameState.turn = 'p1';
+            playSyntheticSound('win');
+            setGameStatus("Match started! Player 1's Turn.");
+            setupInteractiveBoard(currentGame);
+            updateUIState();
+            syncStateToFirebase();
+        }
+
+        function resetCurrentGame() {
+            gameState.status = 'not_started';
+            gameState.p1Score = 0;
+            gameState.p2Score = 0;
+            setGameStatus("Match board reset.");
+            setupInteractiveBoard(currentGame);
+            updateUIState();
+            syncStateToFirebase();
+        }
+
+        function setGameStatus(msg) {
+            document.getElementById('gameStatusText').innerText = msg;
+            announceToScreenReader(msg);
+        }
+
+        async function syncStateToFirebase() {
+            if (activeRoomId && gameState.mode === 'pvp-online') {
+                const { doc, updateDoc } = window.fbMethods;
+                const roomRef = doc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', activeRoomId);
+                await updateDoc(roomRef, { gameState: gameState });
+            }
+        }
+
+        function setupInteractiveBoard(game) {
+            const container = document.getElementById('gameBoardContainer');
+            const diceArea = document.getElementById('diceControlArea');
+            container.innerHTML = '';
+            diceArea.classList.add('hidden');
+
+            if (game.category === 'Hunt & Capture') renderHuntCaptureBoard(container);
+            else if (game.category === 'Mancala & Pit') renderMancalaBoard(container);
+            else if (game.category === 'Race & Cross') { diceArea.classList.remove('hidden'); renderRaceCrossBoard(container); }
+            else renderAlignmentGridBoard(container);
+        }
+
+        function syncBoardUI() {
+            if (!currentGame) return;
+            const container = document.getElementById('gameBoardContainer');
+            if (currentGame.category === 'Hunt & Capture') renderHuntGridNodes(container.firstChild);
+            else if (currentGame.category === 'Race & Cross') updateRacePositions();
+        }
+
+        function renderHuntCaptureBoard(container) {
+            const boardGrid = document.createElement('div');
+            boardGrid.className = "w-full h-full grid grid-cols-5 gap-2 p-2 bg-amber-950/40 rounded-xl border border-amber-600/30";
+            gameState.boardData = Array(25).fill(null);
+            gameState.boardData[0] = 'P2'; gameState.boardData[2] = 'P2'; gameState.boardData[4] = 'P2';
+            renderHuntGridNodes(boardGrid);
+            container.appendChild(boardGrid);
+        }
+
+        function renderHuntGridNodes(container) {
+            if (!container) return;
+            container.innerHTML = '';
+            gameState.boardData.forEach((cell, idx) => {
+                const node = document.createElement('button');
+                node.className = "relative rounded-full flex items-center justify-center border border-slate-700 bg-slate-900 hover:border-amber-500 transition shadow-inner";
+                node.setAttribute('aria-label', `Space ${idx + 1}, ${cell ? cell : 'empty'}`);
+                
+                if (cell === 'P1') node.innerHTML = `<div class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center">G</div>`;
+                else if (cell === 'P2') node.innerHTML = `<div class="w-7 h-7 rounded-full bg-rose-600 text-white font-extrabold text-xs flex items-center justify-center">T</div>`;
+
+                node.onclick = () => handleHuntClick(idx);
+                container.appendChild(node);
+            });
+        }
+
+        function handleHuntClick(idx) {
+            if (gameState.status !== 'playing' || gameState.boardData[idx] !== null) return;
+            playSyntheticSound('click');
+            
+            gameState.boardData[idx] = gameState.turn === 'p1' ? 'P1' : 'P2';
+            gameState.turn = gameState.turn === 'p1' ? 'p2' : 'p1';
+            setGameStatus(`Placed piece at space ${idx + 1}.`);
+            
+            updateUIState();
+            renderHuntGridNodes(document.getElementById('gameBoardContainer').firstChild);
+            syncStateToFirebase();
+
+            if (gameState.turn === 'p2' && gameState.mode.startsWith('ai')) setTimeout(triggerAITurn, 600);
+        }
+
+        function renderMancalaBoard(container) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "w-full flex flex-col justify-between gap-6 p-4 bg-amber-950/30 rounded-2xl border border-amber-600/30";
+            gameState.boardData = { row1: [5,5,5,5,5,5,5], row2: [5,5,5,5,5,5,5] };
+
+            ['row2', 'row1'].forEach(row => {
+                const rDiv = document.createElement('div');
+                rDiv.className = "grid grid-cols-7 gap-2";
+                gameState.boardData[row].forEach((seeds, idx) => {
+                    const pit = document.createElement('button');
+                    pit.className = "h-16 rounded-xl bg-slate-950 border border-amber-600/40 flex flex-col items-center justify-center text-xs font-bold text-amber-400";
+                    pit.innerText = `${seeds} Seeds`;
+                    pit.onclick = () => handleMancalaClick(row, idx);
+                    rDiv.appendChild(pit);
+                });
+                wrapper.appendChild(rDiv);
+            });
+            container.appendChild(wrapper);
+        }
+
+        function handleMancalaClick(row, idx) {
+            if (gameState.status !== 'playing' || gameState.boardData[row][idx] === 0) return;
+            playSyntheticSound('capture');
+            const seeds = gameState.boardData[row][idx];
+            gameState.boardData[row][idx] = 0;
+            
+            if (gameState.turn === 'p1') gameState.p1Score += seeds;
+            else gameState.p2Score += seeds;
+
+            gameState.turn = gameState.turn === 'p1' ? 'p2' : 'p1';
+            setGameStatus(`Sowed ${seeds} seeds. Next turn.`);
+            updateUIState();
+            renderMancalaBoard(document.getElementById('gameBoardContainer'));
+            syncStateToFirebase();
+
+            if (gameState.turn === 'p2' && gameState.mode.startsWith('ai')) setTimeout(triggerAITurn, 600);
+        }
+
+        function renderAlignmentGridBoard(container) {
+            const grid = document.createElement('div');
+            grid.className = "w-full h-full grid grid-cols-3 gap-3 p-4 bg-amber-950/20 rounded-2xl border border-amber-600/30";
+            gameState.boardData = Array(9).fill(null);
+
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('button');
+                cell.className = "rounded-2xl bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-lg font-bold";
+                cell.onclick = () => handleAlignmentClick(i);
+                grid.appendChild(cell);
+            }
+            container.appendChild(grid);
+        }
+
+        function handleAlignmentClick(idx) {
+            if (gameState.status !== 'playing' || gameState.boardData[idx] !== null) return;
+            playSyntheticSound('click');
+            
+            gameState.boardData[idx] = gameState.turn;
+            const grid = document.getElementById('gameBoardContainer').firstChild;
+            grid.children[idx].innerText = gameState.turn === 'p1' ? 'P1' : 'P2';
+
+            gameState.turn = gameState.turn === 'p1' ? 'p2' : 'p1';
+            updateUIState();
+            syncStateToFirebase();
+
+            if (gameState.turn === 'p2' && gameState.mode.startsWith('ai')) setTimeout(triggerAITurn, 500);
+        }
+
+        function renderRaceCrossBoard(container) {
+            const board = document.createElement('div');
+            board.className = "w-full h-full grid grid-cols-10 grid-rows-10 gap-1 p-2 bg-slate-900 border border-amber-600/30 rounded-xl relative";
+            gameState.boardData = { p1Pos: 1, p2Pos: 1 };
+
+            for (let i = 100; i >= 1; i--) {
+                const cell = document.createElement('div');
+                cell.className = "rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-[9px] text-slate-500 font-bold relative";
+                cell.innerText = i;
+                cell.id = `race-cell-${i}`;
+                board.appendChild(cell);
+            }
+            container.appendChild(board);
+            updateRacePositions();
+        }
+
+        function rollCowrieShells() {
+            if (gameState.status !== 'playing') return;
+            playSyntheticSound('dice');
+            const roll = Math.floor(Math.random() * 6) + 1;
+
+            if (gameState.turn === 'p1') {
+                gameState.boardData.p1Pos = Math.min(100, gameState.boardData.p1Pos + roll);
+                gameState.turn = 'p2';
+            } else {
+                gameState.boardData.p2Pos = Math.min(100, gameState.boardData.p2Pos + roll);
+                gameState.turn = 'p1';
+            }
+
+            setGameStatus(`Rolled ${roll}! Moved token.`);
+            updateRacePositions();
+            updateUIState();
+            syncStateToFirebase();
+
+            if (gameState.turn === 'p2' && gameState.mode.startsWith('ai')) setTimeout(triggerAITurn, 700);
+        }
+
+        function updateRacePositions() {
+            document.querySelectorAll('[id^="race-cell-"]').forEach(c => {
+                c.querySelectorAll('.marker').forEach(m => m.remove());
+            });
+
+            const c1 = document.getElementById(`race-cell-${gameState.boardData.p1Pos}`);
+            if (c1) c1.innerHTML += `<div class="marker absolute w-2.5 h-2.5 rounded-full bg-amber-400 top-1 left-1"></div>`;
+
+            const c2 = document.getElementById(`race-cell-${gameState.boardData.p2Pos}`);
+            if (c2) c2.innerHTML += `<div class="marker absolute w-2.5 h-2.5 rounded-full bg-rose-500 bottom-1 right-1"></div>`;
+        }
+
+        function triggerAITurn() {
+            if (gameState.status !== 'playing' || gameState.turn !== 'p2') return;
+
+            if (currentGame.category === 'Alignment & Grid') {
+                const empties = gameState.boardData.map((v, i) => v === null ? i : null).filter(v => v !== null);
+                if (empties.length > 0) handleAlignmentClick(empties[Math.floor(Math.random() * empties.length)]);
+            } else if (currentGame.category === 'Hunt & Capture') {
+                const empties = gameState.boardData.map((v, i) => v === null ? i : null).filter(v => v !== null);
+                if (empties.length > 0) handleHuntClick(empties[Math.floor(Math.random() * empties.length)]);
+            } else if (currentGame.category === 'Race & Cross') {
+                rollCowrieShells(
+
+                
+                );
+            }
+        }
+    </script>
+</body>
+</html>
+```
